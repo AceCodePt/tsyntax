@@ -18,6 +18,11 @@
 	],
 	"author": "Sagi Carmel (https://github.com/AceCodePt)",
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/AceCodePt/tsyntax.git"
+	},
+	"homepage": "https://www.npmjs.com/package/@ace-code/tsyntax",
 	"packageManager": "pnpm@11.17.0",
 	"dependencies": {
 		"tsyntax": "^0.1.0"

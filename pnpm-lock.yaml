@@ -25,8 +25,8 @@ importers:
   packages/ace-code-tsyntax:
     dependencies:
       tsyntax:
-        specifier: workspace:*
-        version: link:../..
+        specifier: ^0.1.0
+        version: 0.1.0
     devDependencies:
       '@types/node':
         specifier: ^26.1.2
@@ -337,6 +337,9 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
+  tsyntax@0.1.0:
+    resolution: {integrity: sha512-nLbE+vLp8TSAmw1eovqWEymloWzSHSntIhAg5PGkcywTsrdsEg6/z9JWJPHjV+loeTlcFNPMfjXog3MNOiPF4Q==}
+
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -528,6 +531,10 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
+
+  tsyntax@0.1.0:
+    dependencies:
+      typescript: 7.0.2
 
   typescript@7.0.2:
     optionalDependencies:
