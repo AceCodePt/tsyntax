@@ -106,6 +106,12 @@ Early, honest version: one maintainer, no releases yet. The type-level and
 runtime guarantees above are tested (`pnpm test`). The API surface may still
 move.
 
+## Scoped alias
+
+Prefer the plain name; if you need it under a scope, `@ace-code/tsyntax` is a
+thin re-export of the same library (published from `packages/ace-code-tsyntax`
+in this repo).
+
 ## License
 
 MIT
