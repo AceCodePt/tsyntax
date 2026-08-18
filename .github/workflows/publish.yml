@@ -24,9 +24,5 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
-      - run: pnpm publish --provenance --no-git-checks # Publish with provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: pnpm publish --provenance --no-git-checks # Trusted publisher (OIDC) auth
       - run: pnpm --filter @ace-code/tsyntax publish --provenance --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
