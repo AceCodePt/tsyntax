@@ -1,4 +1,4 @@
-import type { Trim } from "@/types.ts";
+import type { Trim } from "./types.ts";
 
 const SUPPORTED_PRIMITIVES = {
   string: "" as string,

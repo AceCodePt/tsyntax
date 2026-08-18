@@ -1,0 +1,30 @@
+{
+	"name": "@ace-code/tsyntax",
+	"version": "0.1.0",
+	"publishConfig": {
+		"access": "public"
+	},
+	"description": "Scoped alias for tsyntax - TypeScript-syntax DSL strings parsed at the type level and at runtime",
+	"main": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"test": "tsc --noEmit && node --import=tsx/esm --test"
+	},
+	"keywords": [
+		"typescript",
+		"dsl",
+		"type-level",
+		"validation"
+	],
+	"author": "Sagi Carmel (https://github.com/AceCodePt)",
+	"license": "MIT",
+	"packageManager": "pnpm@11.17.0",
+	"dependencies": {
+		"tsyntax": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/node": "^26.1.2",
+		"tsx": "^4.23.1",
+		"typescript": "^7.0.2"
+	}
+}

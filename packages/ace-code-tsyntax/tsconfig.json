@@ -1,0 +1,34 @@
+{
+	"compilerOptions": {
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"target": "esnext",
+		"types": [
+			"node"
+		],
+		"allowImportingTsExtensions": true,
+		"noEmit": true,
+		"sourceMap": true,
+		"declaration": true,
+		"declarationMap": true,
+		"strictBindCallApply": true,
+		"pretty": true,
+		"erasableSyntaxOnly": true,
+		"noImplicitAny": true,
+		"noUncheckedIndexedAccess": true,
+		"exactOptionalPropertyTypes": true,
+		"noImplicitReturns": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noFallthroughCasesInSwitch": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"strict": true,
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"noUncheckedSideEffectImports": true,
+		"moduleDetection": "force",
+		"skipLibCheck": true,
+		"noErrorTruncation": false
+	}
+}
