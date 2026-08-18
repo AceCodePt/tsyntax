@@ -46,6 +46,23 @@ The DSL is a deliberately small subset of TypeScript type syntax, covering
 That restraint is what keeps the type-level parser small enough for one
 maintainer to own and fast enough to stay out of your editor's way.
 
+## Size
+
+Measured, not aspirational:
+
+- **443 lines** of source (`src/index.ts` + `src/types.ts`, ~13.4 KB, **3.6 KB
+  gzipped**) — of which ~131 lines are the type-level parser and the rest the
+  runtime parser.
+- **9 exported symbols** — `SUPPORTED_KEYWORDS`, `dslString`,
+  `parseValueAgainstDSL`, `extractTokenReferences`, `detectCircularReferences`,
+  and the `DSLValidate` / `DSLInfer` / `SupportedKeywords` /
+  `SupportedKeywordsConfig` types.
+- Published tarball: **9.7 kB** packed / **47.2 kB** unpacked.
+
+This is a small parser over a deliberately small grammar — a scalar subset of
+TypeScript type syntax, not a 1:1 port of TypeScript's compiler or runtime
+validators.
+
 ## Autocomplete while typing
 
 The type-level parser is autocomplete-aware: after a pipe, the union members

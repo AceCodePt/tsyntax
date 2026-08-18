@@ -4,7 +4,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"description": "TypeScript-syntax DSL strings parsed identically at the type level and at runtime - one string, two walls",
+	"description": "A lightweight ~13 KB parser for scalar TypeScript-syntax DSL strings, validated at the type level and at runtime - one string, two walls",
 	"main": "src/index.ts",
 	"type": "module",
 	"scripts": {
