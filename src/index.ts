@@ -57,13 +57,15 @@ type SingleDSLValidate<
         >
       : Trim<L> extends `'${string}'` | `"${string}"`
         ? PipeWhenExists<Keywords, L, R>
-        : [Extract<keyof Keywords, `${Trim<L>}${string}`>] extends [string]
-          ? PipeWhenExists<
-              Keywords,
-              Extract<keyof Keywords, `${Trim<L>}${string}`>,
-              R
-            >
-          : `'${Trim<L>}' is not supported`;
+        : Trim<L> extends keyof Keywords
+          ? PipeWhenExists<Keywords, Trim<L>, R>
+          : [Extract<keyof Keywords, `${Trim<L>}${string}`>] extends [string]
+            ? PipeWhenExists<
+                Keywords,
+                Extract<keyof Keywords, `${Trim<L>}${string}`>,
+                R
+              >
+            : `'${Trim<L>}' is not supported`;
 
 type DSLTemplateDelimiter<S extends SupportedKeywordsConfig, T extends string> =
   Trim<T> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
