@@ -1,0 +1,6 @@
+# Inert template files and runtime state, not project intent.
+# Real hooks (a copy of a machine-level template committed as .orchestration/hooks/<name>)
+# ARE tracked; only the inert .sample/.example templates are ignored.
+.state/
+*.sample
+*.example
