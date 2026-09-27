@@ -4,6 +4,7 @@ import {
   parseValueAgainstDSL,
   SUPPORTED_KEYWORDS,
   type DSLInfer,
+  type DSLValidate,
   type SupportedKeywords,
 } from "@/index.ts";
 import { assertType, type Equal } from "./type-utils.ts";
@@ -275,6 +276,63 @@ describe("Literal String with pipe - '|' \"|\" `|` [EDGE CASE]", () => {
 });
 
 describe("Union Type (|)", () => {
+  describe("Pipe spacing round-trip [EDGE CASE]", () => {
+    test("no-space input validates to itself", () => {
+      assertType<
+        Equal<
+          DSLValidate<SupportedKeywords, "string|number|boolean">,
+          "string|number|boolean"
+        >
+      >();
+      assert.strictEqual(
+        dslString(SUPPORTED_KEYWORDS, "string|number|boolean"),
+        "string|number|boolean",
+      );
+    });
+
+    test("fully spaced input validates to itself", () => {
+      assertType<
+        Equal<
+          DSLValidate<SupportedKeywords, "string | number | boolean">,
+          "string | number | boolean"
+        >
+      >();
+      assert.strictEqual(
+        dslString(SUPPORTED_KEYWORDS, "string | number | boolean"),
+        "string | number | boolean",
+      );
+    });
+
+    test("ragged input validates to itself", () => {
+      assertType<
+        Equal<
+          DSLValidate<SupportedKeywords, "string| number |boolean">,
+          "string| number |boolean"
+        >
+      >();
+      assert.strictEqual(
+        dslString(SUPPORTED_KEYWORDS, "string| number |boolean"),
+        "string| number |boolean",
+      );
+    });
+
+    test("ragged template-literal union validates to itself", () => {
+      assertType<
+        Equal<
+          DSLValidate<
+            SupportedKeywords,
+            "`${string|number}` | 'a' |boolean"
+          >,
+          "`${string|number}` | 'a' |boolean"
+        >
+      >();
+      assert.strictEqual(
+        dslString(SUPPORTED_KEYWORDS, "`${string|number}` | 'a' |boolean"),
+        "`${string|number}` | 'a' |boolean",
+      );
+    });
+  });
+
   describe("Union Type with Primitives - string | number | bigint | boolean | undefined", () => {
     test("Type Inference", () => {
       assertType<

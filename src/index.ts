@@ -25,15 +25,24 @@ export interface SupportedKeywordsConfig {
   [attribute: string]: any;
 }
 
+type HasTrailingSpace<S extends string> = S extends `${string} ` ? true : false;
+type HasLeadingSpace<S extends string> = [S] extends [never]
+  ? false
+  : S extends ` ${string}`
+    ? true
+    : false;
+
 // Small note: the never for R is critical
 // See example: dslString("string |") and auto complete after the pipe
 type PipeWhenExists<
   S extends SupportedKeywordsConfig,
   L extends string | number,
   R extends string | never = never,
+  SpaceBefore extends boolean = false,
+  SpaceAfter extends boolean = false,
 > = [R] extends [never]
   ? Trim<`${L}`>
-  : `${Trim<`${L}`>} | ${DSLValidate<S, R>}`;
+  : `${Trim<`${L}`>}${SpaceBefore extends true ? " " : ""}|${SpaceAfter extends true ? " " : ""}${DSLValidate<S, R>}`;
 
 type ValidateRestOfBackTick<
   Keywords extends SupportedKeywordsConfig,
@@ -46,35 +55,44 @@ type SingleDSLValidate<
   Keywords extends SupportedKeywordsConfig,
   L extends string,
   R extends string | never,
+  SpaceBefore extends boolean = HasTrailingSpace<L>,
+  SpaceAfter extends boolean = HasLeadingSpace<R>,
 > =
   Trim<L> extends `${infer N extends number}`
-    ? PipeWhenExists<Keywords, N, R>
+    ? PipeWhenExists<Keywords, N, R, SpaceBefore, SpaceAfter>
     : Trim<L> extends `\`${infer Str extends string}\``
       ? PipeWhenExists<
           Keywords,
           `\`${ValidateRestOfBackTick<Keywords, Str>}\``,
-          R
+          R,
+          SpaceBefore,
+          SpaceAfter
         >
       : Trim<L> extends `'${string}'` | `"${string}"`
-        ? PipeWhenExists<Keywords, L, R>
+        ? PipeWhenExists<Keywords, L, R, SpaceBefore, SpaceAfter>
         : Trim<L> extends keyof Keywords
-          ? PipeWhenExists<Keywords, Trim<L>, R>
+          ? PipeWhenExists<Keywords, Trim<L>, R, SpaceBefore, SpaceAfter>
           : [Extract<keyof Keywords, `${Trim<L>}${string}`>] extends [string]
             ? PipeWhenExists<
                 Keywords,
                 Extract<keyof Keywords, `${Trim<L>}${string}`>,
-                R
+                R,
+                SpaceBefore,
+                SpaceAfter
               >
             : `'${Trim<L>}' is not supported`;
 
 type DSLTemplateDelimiter<S extends SupportedKeywordsConfig, T extends string> =
   Trim<T> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
-    ? SingleDSLValidate<
-        S,
-        `\`${Piped}\``,
-        // We only pass the right side of the pipe so we get autocomplete
-        Maybe extends `${string}|${infer Other extends string}` ? Other : never
-      >
+    ? Maybe extends `${infer Before extends string}|${infer Other extends string}`
+      ? SingleDSLValidate<
+          S,
+          `\`${Piped}\``,
+          Other,
+          HasTrailingSpace<Before>,
+          HasLeadingSpace<Other>
+        >
+      : SingleDSLValidate<S, `\`${Piped}\``, never>
     : T extends `${infer L extends string}|${infer R extends string}`
       ? SingleDSLValidate<S, L, R>
       : SingleDSLValidate<S, T, never>;
