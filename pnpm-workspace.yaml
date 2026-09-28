@@ -3,5 +3,3 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: false
-minimumReleaseAgeExclude:
-  - tsyntax@0.1.0
