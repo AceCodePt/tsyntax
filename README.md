@@ -94,8 +94,13 @@ cyclically-referencing token graphs.
 - **Nested template literals** (a backtick literal containing an interpolation)
   are not supported - tracking escape depth across quote contexts at the type
   level costs more than the edge case is worth.
+- **No arrays or objects** - the DSL is scalar-only: primitives, literals,
+  template literals, and their unions. Structural TypeScript syntax (`T[]`,
+  `{ a: T }`) is out of scope. Supporting it would force the type-level parser
+  to track bracket/brace nesting and structural recursion, which is exactly the
+  complexity the scalar subset exists to avoid.
 
-Both are documented trade-offs for type-system performance, not oversights.
+All three are documented trade-offs for type-system performance, not oversights.
 
 ## The two walls
 
