@@ -1,12 +1,15 @@
 {
 	"name": "tsyntax",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"publishConfig": {
 		"access": "public"
 	},
 	"description": "A lightweight ~13 KB parser for scalar TypeScript-syntax DSL strings, validated at the type level and at runtime - one string, two walls",
 	"main": "src/index.ts",
 	"type": "module",
+	"files": [
+		"src"
+	],
 	"scripts": {
 		"test": "tsc --noEmit && node --import=tsx/esm --test",
 		"test:watch": "node --import=tsx/esm --test --watch"

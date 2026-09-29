@@ -1,12 +1,15 @@
 {
 	"name": "@ace-code/tsyntax",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"publishConfig": {
 		"access": "public"
 	},
 	"description": "Scoped alias for tsyntax - TypeScript-syntax DSL strings parsed at the type level and at runtime",
 	"main": "src/index.ts",
 	"type": "module",
+	"files": [
+		"src"
+	],
 	"scripts": {
 		"test": "tsc --noEmit && node --import=tsx/esm --test"
 	},
