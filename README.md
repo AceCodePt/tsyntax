@@ -124,9 +124,9 @@ undefined"` means exactly what it looks like.
 
 ## Status
 
-Early, honest version: one maintainer, no releases yet. The type-level and
-runtime guarantees above are tested (`pnpm test`). The API surface may still
-move.
+Practically speaking done - Since the domain is constrainted. Issues are welcomed,
+however I don't see a reason to further maintain this package so I expect 1.x.x
+be the maximum version.
 
 ## Scoped alias
 
