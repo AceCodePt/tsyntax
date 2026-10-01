@@ -50,12 +50,12 @@ maintainer to own and fast enough to stay out of your editor's way.
 
 Measured, not aspirational:
 
-- **463 lines** of source (`src/index.ts` + `src/types.ts`, ~14.2 KB, **3.7 KB
-  gzipped**) — of which ~130 lines are the type-level parser and the rest the
+- **476 lines** of source (`src/index.ts` + `src/types.ts`, ~14.8 KB, **3.9 KB
+  gzipped**) — of which ~143 lines are the type-level parser and the rest the
   runtime parser.
-- **9 exported symbols** — `SUPPORTED_KEYWORDS`, `dslString`,
+- **10 exported symbols** — `SUPPORTED_KEYWORDS`, `dslString`,
   `parseValueAgainstDSL`, `extractTokenReferences`, `detectCircularReferences`,
-  and the `DSLValidate` / `DSLInfer` / `SupportedKeywords` /
+  and the `DSLValidate` / `DSLValidateArm` / `DSLInfer` / `SupportedKeywords` /
   `SupportedKeywordsConfig` types.
 - **~1.5 KB gzipped runtime** — once the type-level parser is erased, the
   runtime bundles to ~3.2 KB minified (~1.5 KB gzipped).
