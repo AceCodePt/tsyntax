@@ -108,6 +108,19 @@ export type DSLValidate<
       ? SingleDSLValidate<Keywords, L, R>
       : SingleDSLValidate<Keywords, T, never>;
 
+/**
+ * Validates exactly one DSL arm - a single string with no top-level `|`
+ * handling. Use this when validating an array of arms one element at a time
+ * (e.g. `{ readonly [I in keyof Arms]: DSLValidateArm<Keywords, Arms[I] & string> }`),
+ * where `DSLValidate`'s union splitting would misread a `|` inside an arm.
+ * For an equivalent single-arm string it produces the same diagnostic shape
+ * as `DSLValidate`.
+ */
+export type DSLValidateArm<
+  Keywords extends SupportedKeywordsConfig,
+  Arm extends string,
+> = [Arm] extends [never] ? string : SingleDSLValidate<Keywords, Arm, never>;
+
 type InferRestOfBackTick<
   Keywords extends SupportedKeywordsConfig,
   Str extends string,

@@ -5,7 +5,9 @@ import {
   SUPPORTED_KEYWORDS,
   type DSLInfer,
   type DSLValidate,
+  type DSLValidateArm,
   type SupportedKeywords,
+  type SupportedKeywordsConfig,
 } from "@/index.ts";
 import { assertType, type Equal } from "./type-utils.ts";
 import assert from "node:assert";
@@ -970,5 +972,74 @@ describe("Error handling", () => {
         /does not match DSL/,
       );
     });
+  });
+});
+
+describe("DSLValidateArm - one arm at a time", () => {
+  // Mirrors the call site this type exists for: validate each arm of an
+  // array independently, so a `|` inside an arm is not read as a union.
+  type ValidateArms<
+    Keywords extends SupportedKeywordsConfig,
+    Arms extends readonly string[],
+  > = { readonly [I in keyof Arms]: DSLValidateArm<Keywords, Arms[I] & string> };
+
+  test("matches DSLValidate for an equivalent single-arm string", () => {
+    assertType<
+      Equal<
+        DSLValidateArm<SupportedKeywords, "string">,
+        DSLValidate<SupportedKeywords, "string">
+      >
+    >();
+    assertType<
+      Equal<
+        DSLValidateArm<SupportedKeywords, "'a'">,
+        DSLValidate<SupportedKeywords, "'a'">
+      >
+    >();
+    assertType<
+      Equal<
+        DSLValidateArm<SupportedKeywords, "`${number}`">,
+        DSLValidate<SupportedKeywords, "`${number}`">
+      >
+    >();
+    assertType<
+      Equal<
+        DSLValidateArm<SupportedKeywords, "`${number}|${string}`">,
+        DSLValidate<SupportedKeywords, "`${number}|${string}`">
+      >
+    >();
+  });
+
+  test("keeps an arm's internal template-literal pipe intact", () => {
+    assertType<
+      Equal<
+        DSLValidateArm<SupportedKeywords, "`${number}|${string}`">,
+        "`${number}|${string}`"
+      >
+    >();
+  });
+
+  test("does not split a top-level pipe into a union", () => {
+    assertType<
+      Equal<
+        Equal<
+          DSLValidateArm<SupportedKeywords, "string | number">,
+          DSLValidate<SupportedKeywords, "string | number">
+        >,
+        false
+      >
+    >();
+  });
+
+  test("distributes per-arm inside the mapped type", () => {
+    type Arms = readonly ["string", "`${number}|${string}`", "'a'"];
+    type Validated = ValidateArms<SupportedKeywords, Arms>;
+
+    assertType<Equal<Validated[0], "string">>();
+    assertType<Equal<Validated[1], "`${number}|${string}`">>();
+    assertType<Equal<Validated[2], "'a'">>();
+    assertType<
+      Equal<Validated[1], DSLValidate<SupportedKeywords, "`${number}|${string}`">>
+    >();
   });
 });
