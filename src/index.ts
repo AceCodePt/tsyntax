@@ -145,6 +145,65 @@ type SingleDSLInfer<
         ? Str
         : never;
 
+// Split a joined DSL string into its top-level arms.
+//
+// A leading backtick runs to its *shortest* closing backtick, so a `|` inside
+// `${...}` stays within one arm (the same protection `DSLInfer`'s template
+// pattern gives). Everything else splits at the next top-level `|`.
+//
+// `SplitChunk` peels up to 8 arms per alias invocation; `SplitArms` recurses
+// once per chunk. That keeps the splitter's own depth at `ceil(arms / 8)`
+// rather than one frame per arm, which is what pushed a ~46-arm token past
+// TypeScript's instantiation-depth limit (100) at a use site (`TS2589`).
+type SplitArms<
+  S extends string,
+  Accum extends readonly string[] = [],
+> = Trim<S> extends ""
+  ? Accum
+  : SplitChunk<Trim<S>> extends [
+        infer Chunk extends string[],
+        infer Rest extends string,
+      ]
+    ? SplitArms<Rest, [...Accum, ...Chunk]>
+    : Accum;
+
+type SplitChunk<
+  S extends string,
+  Acc extends string[] = [],
+> = Acc["length"] extends 8 ? [Acc, S] : SplitOne<S, Acc>;
+
+type SplitOne<
+  S extends string,
+  Acc extends string[],
+> = S extends `\`${infer Seg}\`${infer Rest}`
+  ? SplitChunk<Rest, [...Acc, `\`${Seg}\``]>
+  : S extends `${infer Seg}|${infer Rest}`
+    ? SplitChunk<Rest, [...Acc, Trim<Seg>]>
+    : [[...Acc, Trim<S>], ""];
+
+// Resolve one arm. A whole-backtick arm with an inner pipe is a template; every
+// other arm is a single bare/literal arm. Mirrors `DSLInfer`'s arm logic.
+type InferArm<
+  Keywords extends SupportedKeywordsConfig,
+  Arm extends string,
+> = Trim<Arm> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
+  ? Piped extends `${infer Before extends string}\$\{${infer innerDSL extends string}\}${infer After extends string}`
+    ?
+        | `${Before}${DSLInfer<Keywords, Trim<innerDSL>>}${InferRestOfBackTick<Keywords, After>}`
+        | DSLInfer<Keywords, Trim<Maybe>>
+    : `${Piped}`
+  : SingleDSLInfer<Keywords, Trim<Arm>>;
+
+// Resolve every arm through the named `InferArm` alias. A mapped type over the
+// arm tuple, so arm count does not consume serial depth; the alias is cached by
+// its `(Keywords, Arm)` arguments.
+type InferArms<
+  Keywords extends SupportedKeywordsConfig,
+  Arms extends readonly string[],
+> = {
+  readonly [I in keyof Arms]: InferArm<Keywords, Arms[I] & string>;
+}[number];
+
 export type DSLInfer<
   Keywords extends SupportedKeywordsConfig,
   Text extends string,
@@ -158,8 +217,8 @@ export type DSLInfer<
             | `${Before}${DSLInfer<Keywords, Trim<innerDSL>>}${InferRestOfBackTick<Keywords, After>}`
             | DSLInfer<Keywords, Trim<Maybe>>
         : `${Piped}`
-      : Text extends `${infer L}|${infer R}`
-        ? SingleDSLInfer<Keywords, Trim<L>> | DSLInfer<Keywords, Trim<R>>
+      : Text extends `${string}|${string}`
+        ? InferArms<Keywords, SplitArms<Text>>
         : SingleDSLInfer<Keywords, Trim<Text>>;
 
 function validateDSLPart(
