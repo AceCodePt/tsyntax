@@ -177,7 +177,7 @@ const NULL_SOURCE =
 // "extreme" keeps measuring at the limit rather than comfortably under it.
 const NEAR_WALL = {
   union: { infer: 92, validate: 49 },
-  interp: { infer: 47, validate: 47 },
+  interp: { infer: 48, validate: 47 },
   interpUnion: { infer: 16, validate: 47 },
   templateArms: { infer: 48, validate: 49 },
 };
