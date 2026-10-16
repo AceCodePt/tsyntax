@@ -35,5 +35,10 @@
 		"moduleDetection": "force",
 		"skipLibCheck": true,
 		"noErrorTruncation": false
-	}
+	},
+	"exclude": [
+		"node_modules",
+		"dist",
+		"perf"
+	]
 }
