@@ -29,6 +29,34 @@ parseValueAgainstDSL(SUPPORTED_KEYWORDS, "'ltr' | 'rtl'", "rtl"); // ok
 parseValueAgainstDSL(SUPPORTED_KEYWORDS, "'ltr' | 'rtl'", "center"); // throws
 ```
 
+## Distribution
+
+The published package is **compiled ESM plus declarations** — `dist/index.js`
+and `dist/index.d.ts` — selected by an `exports` map:
+
+```json
+"exports": {
+  ".": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "default": "./dist/index.js"
+  }
+}
+```
+
+So it runs in plain `node` (no loader, no `tsx`), in Bun, and in bundlers, and
+`tsc` reads the declarations directly. The `main` field deliberately does **not**
+point at `src/index.ts`: Node refuses to strip types for files inside
+`node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`), which is exactly
+how `1.1.3` shipped unusable there. The source lives in this repo, not in the
+tarball.
+
+`pnpm test:package` guards it: it packs the tarballs, installs them into a
+throwaway `node_modules`, imports them with plain `node`, and type-checks a
+consumer against the shipped `.d.ts`.
+
+ESM only — there is no CommonJS build.
+
 ## What the DSL supports
 
 The DSL is a deliberately small subset of TypeScript type syntax, covering
@@ -59,8 +87,9 @@ Measured, not aspirational:
   `SupportedKeywordsConfig` types.
 - **~1.5 KB gzipped runtime** — once the type-level parser is erased, the
   runtime bundles to ~3.2 KB minified (~1.5 KB gzipped).
-- Published tarball: **7.9 kB** packed / **24.7 kB** unpacked — just the two
-  source files plus the manifest and README.
+- Published tarball: **8.4 kB** packed / **26.6 kB** unpacked — `dist/` (the
+  compiled ESM runtime plus its `.d.ts`) and this README. The `src/` sources are
+  not shipped, and there is nothing for you to build.
 
 This is a small parser over a deliberately small grammar — a scalar subset of
 TypeScript type syntax, not a 1:1 port of TypeScript's compiler or runtime
@@ -126,6 +155,12 @@ whether a DSL string hits `TS2589` (too deep) or `TS2590` (union too complex):
 Each implementation under test gets its own program directory
 (`bench/.tmp/<impl>/`) with a per-scenario tsconfig, so an implementation never
 shares a program or an incremental cache with the baseline.
+
+The published package is cheaper to consume than the source, too: because `main`
+resolves to a `.d.ts` rather than a `.ts`, the module is no longer type-checked
+on every import (under the usual `skipLibCheck`), and the fixed instantiation
+floor falls from **13,742** to **0**. You pay only for the DSL strings you
+actually write.
 
 ## Prior art and lineage
 

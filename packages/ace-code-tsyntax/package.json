@@ -5,13 +5,25 @@
 		"access": "public"
 	},
 	"description": "Scoped alias for tsyntax - TypeScript-syntax DSL strings parsed at the type level and at runtime",
-	"main": "src/index.ts",
 	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"sideEffects": false,
 	"files": [
-		"src"
+		"dist"
 	],
 	"scripts": {
-		"test": "tsc --noEmit && node --import=tsx/esm --test"
+		"build": "tsc -p tsconfig.build.json",
+		"prepack": "pnpm build",
+		"test": "pnpm --filter tsyntax build && pnpm build && tsc --noEmit && node --import=tsx/esm --test"
 	},
 	"keywords": [
 		"typescript",

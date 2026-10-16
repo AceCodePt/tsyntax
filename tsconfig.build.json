@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noEmit": false,
+		"outDir": "dist",
+		"rootDir": "src",
+		"rewriteRelativeImportExtensions": true,
+		// dist-only package: a map would point at a src/index.ts that is not in
+		// the tarball, so they are dead weight (~17 kB unpacked).
+		"sourceMap": false,
+		"declarationMap": false
+	},
+	"include": [
+		"src/**/*.ts"
+	]
+}
