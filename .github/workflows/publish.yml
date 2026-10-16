@@ -23,7 +23,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm -r --include-workspace-root test # both packages; the alias builds tsyntax first
       - run: pnpm test:package # builds dist/ and smoke-tests the packed tarball
       - run: pnpm publish --provenance --no-git-checks # Trusted publisher (OIDC) auth
       - run: pnpm --filter @ace-code/tsyntax publish --provenance --no-git-checks

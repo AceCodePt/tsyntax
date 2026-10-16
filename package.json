@@ -23,9 +23,9 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.build.json",
 		"prepack": "pnpm build",
-		"test": "tsc --noEmit && node --import=tsx/esm --test",
+		"test": "tsc --noEmit && node --import=tsx/esm --test tests/",
 		"test:package": "pnpm --filter tsyntax build && pnpm --filter @ace-code/tsyntax build && node scripts/verify-package.mjs",
-		"test:watch": "node --import=tsx/esm --test --watch",
+		"test:watch": "node --import=tsx/esm --test --watch tests/",
 		"bench": "node bench/run.mjs",
 		"bench:baseline": "node bench/run.mjs --save",
 		"bench:light": "node bench/run.mjs --no-sweep"
