@@ -1,3 +1,3 @@
-import { SUPPORTED_KEYWORDS, type DSLValidate, type SupportedKeywords } from "../../src/index.ts";
+import { type DSLValidate, type SupportedKeywords } from "@impl";
 type K = SupportedKeywords;
 export type R = DSLValidate<K, "'ltr' | 'rtl' | 'center' | 'justify'">;

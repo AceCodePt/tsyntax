@@ -1,4 +1,6 @@
 node_modules/
 dist/
 *.tsbuildinfo
-perf/.tmp/
+bench/.tmp/
+bench/*.json
+!bench/baseline.json

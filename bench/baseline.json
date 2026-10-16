@@ -1,0 +1,239 @@
+{
+  "tsc": "Version 7.0.2",
+  "impl": "src/index.ts",
+  "implLabel": "index",
+  "variant": "index",
+  "generatedAt": "2026-10-16T10:18:39.704Z",
+  "baseline": null,
+  "baselineImpl": null,
+  "scenarios": {
+    "null": {
+      "instantiations": 17542,
+      "types": 2778,
+      "check": "0.017s",
+      "total": "0.086s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 0,
+      "deltaVsBaseline": null
+    },
+    "light-literal.infer": {
+      "instantiations": 17609,
+      "types": 2787,
+      "check": "0.017s",
+      "total": "0.083s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 67,
+      "deltaVsBaseline": null
+    },
+    "light-literal.validate": {
+      "instantiations": 17612,
+      "types": 2782,
+      "check": "0.018s",
+      "total": "0.088s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 70,
+      "deltaVsBaseline": null
+    },
+    "light-union.infer": {
+      "instantiations": 17877,
+      "types": 2811,
+      "check": "0.017s",
+      "total": "0.093s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 335,
+      "deltaVsBaseline": null
+    },
+    "light-union.validate": {
+      "instantiations": 17923,
+      "types": 2804,
+      "check": "0.016s",
+      "total": "0.086s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 381,
+      "deltaVsBaseline": null
+    },
+    "light-template.infer": {
+      "instantiations": 17912,
+      "types": 2807,
+      "check": "0.017s",
+      "total": "0.087s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 370,
+      "deltaVsBaseline": null
+    },
+    "light-template.validate": {
+      "instantiations": 17905,
+      "types": 2798,
+      "check": "0.017s",
+      "total": "0.087s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 363,
+      "deltaVsBaseline": null
+    },
+    "light-recursive-token.infer": {
+      "instantiations": 17965,
+      "types": 2812,
+      "check": "0.017s",
+      "total": "0.087s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 423,
+      "deltaVsBaseline": null
+    },
+    "light-recursive-token.validate": {
+      "instantiations": 17617,
+      "types": 2788,
+      "check": "0.017s",
+      "total": "0.085s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 75,
+      "deltaVsBaseline": null
+    },
+    "extreme-union.infer": {
+      "instantiations": 21231,
+      "types": 3052,
+      "check": "0.019s",
+      "total": "0.086s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 3689,
+      "deltaVsBaseline": null
+    },
+    "extreme-union.validate": {
+      "instantiations": 21868,
+      "types": 3031,
+      "check": "0.018s",
+      "total": "0.091s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 4326,
+      "deltaVsBaseline": null
+    },
+    "extreme-interp.infer": {
+      "instantiations": 18437,
+      "types": 2880,
+      "check": "0.018s",
+      "total": "0.088s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 895,
+      "deltaVsBaseline": null
+    },
+    "extreme-interp.validate": {
+      "instantiations": 18360,
+      "types": 2832,
+      "check": "0.018s",
+      "total": "0.089s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 818,
+      "deltaVsBaseline": null
+    },
+    "extreme-interp-union.infer": {
+      "instantiations": 18079,
+      "types": 133930,
+      "check": "0.225s",
+      "total": "0.292s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 537,
+      "deltaVsBaseline": null
+    },
+    "extreme-interp-union.validate": {
+      "instantiations": 18461,
+      "types": 2839,
+      "check": "0.017s",
+      "total": "0.083s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 919,
+      "deltaVsBaseline": null
+    },
+    "extreme-template-arms.infer": {
+      "instantiations": 20852,
+      "types": 2949,
+      "check": "0.018s",
+      "total": "0.087s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 3310,
+      "deltaVsBaseline": null
+    },
+    "extreme-template-arms.validate": {
+      "instantiations": 21814,
+      "types": 2985,
+      "check": "0.020s",
+      "total": "0.090s",
+      "ok": true,
+      "codes": [],
+      "deltaVsNull": 4272,
+      "deltaVsBaseline": null
+    }
+  },
+  "sweeps": {
+    "union-width.infer": {
+      "threshold": 92,
+      "failCode": "TS2589",
+      "instantiations": 21231,
+      "unit": "arms",
+      "deltaVsBaseline": null
+    },
+    "union-width.validate": {
+      "threshold": 49,
+      "failCode": "TS2589",
+      "instantiations": 21868,
+      "unit": "arms",
+      "deltaVsBaseline": null
+    },
+    "interp-scalar.infer": {
+      "threshold": 48,
+      "failCode": "TS2589",
+      "instantiations": 18437,
+      "unit": "interpolations",
+      "deltaVsBaseline": null
+    },
+    "interp-scalar.validate": {
+      "threshold": 47,
+      "failCode": "TS2589",
+      "instantiations": 18360,
+      "unit": "interpolations",
+      "deltaVsBaseline": null
+    },
+    "interp-union.infer": {
+      "threshold": 16,
+      "failCode": "TS2590",
+      "instantiations": 18079,
+      "unit": "interpolations",
+      "deltaVsBaseline": null
+    },
+    "interp-union.validate": {
+      "threshold": 47,
+      "failCode": "TS2589",
+      "instantiations": 18461,
+      "unit": "interpolations",
+      "deltaVsBaseline": null
+    },
+    "template-arms.infer": {
+      "threshold": 48,
+      "failCode": "TS2589",
+      "instantiations": 20852,
+      "unit": "arms",
+      "deltaVsBaseline": null
+    },
+    "template-arms.validate": {
+      "threshold": 49,
+      "failCode": "TS2589",
+      "instantiations": 21814,
+      "unit": "arms",
+      "deltaVsBaseline": null
+    }
+  }
+}

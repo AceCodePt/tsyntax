@@ -1,4 +1,4 @@
-import { SUPPORTED_KEYWORDS, type DSLValidate, type SupportedKeywords } from "../../src/index.ts";
+import { type DSLValidate, type SupportedKeywords } from "@impl";
 type K = SupportedKeywords & {
   "<length>": "`${number}${'%' | 'px'}`",
 };

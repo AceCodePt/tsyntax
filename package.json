@@ -13,9 +13,9 @@
 	"scripts": {
 		"test": "tsc --noEmit && node --import=tsx/esm --test",
 		"test:watch": "node --import=tsx/esm --test --watch",
-		"perf": "node perf/run.mjs",
-		"perf:baseline": "node perf/run.mjs --save",
-		"perf:light": "node perf/run.mjs --no-sweep"
+		"bench": "node bench/run.mjs",
+		"bench:baseline": "node bench/run.mjs --save",
+		"bench:light": "node bench/run.mjs --no-sweep"
 	},
 	"keywords": [
 		"typescript",

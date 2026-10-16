@@ -1,3 +1,3 @@
-import { SUPPORTED_KEYWORDS, type DSLInfer, type SupportedKeywords } from "../../src/index.ts";
+import { type DSLInfer, type SupportedKeywords } from "@impl";
 type K = SupportedKeywords;
 export type R = DSLInfer<K, "`${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}${'a' | 'b'}`">;
