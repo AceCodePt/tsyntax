@@ -145,13 +145,15 @@ type SingleDSLInfer<
         ? Str
         : never;
 
-// Peel two top-level `|` arms per self-recursion. One frame per two arms keeps
-// a ~47-arm token under TypeScript's instantiation-depth limit (100) without the
-// eager per-arm mapped pass that a batched tuple needs. A leading backtick is
-// peeled first, so a `|` inside `${...}` stays within one arm.
+// Peel arms lazily and accumulate the result as a union in tail position, so
+// the recursion is tail-call-eliminated (deep, no tuple materialisation). No
+// splitter, no mapped pass. A leading backtick is peeled first, so a `|` inside
+// `${...}` stays within one arm. `Acc` starts as `never`, so `Acc | …` is the
+// identity until the first arm is added.
 export type DSLInfer<
   Keywords extends SupportedKeywordsConfig,
   Text extends string,
+  Acc = never,
 > = [Text] extends [never]
   ? string
   : string extends Text
@@ -159,17 +161,21 @@ export type DSLInfer<
     : Trim<Text> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
       ? Piped extends `${infer Before extends string}\$\{${infer innerDSL extends string}\}${infer After extends string}`
         ?
+            | Acc
             | `${Before}${DSLInfer<Keywords, Trim<innerDSL>>}${InferRestOfBackTick<Keywords, After>}`
             | DSLInfer<Keywords, Trim<Maybe>>
-        : `${Piped}`
+        : Acc | `${Piped}`
       : Text extends `${infer L}|${infer M}|${infer R}`
-        ?
+        ? DSLInfer<
+            Keywords,
+            Trim<R>,
+            | Acc
             | SingleDSLInfer<Keywords, Trim<L>>
             | SingleDSLInfer<Keywords, Trim<M>>
-            | DSLInfer<Keywords, Trim<R>>
+          >
         : Text extends `${infer L}|${infer R}`
-          ? SingleDSLInfer<Keywords, Trim<L>> | DSLInfer<Keywords, Trim<R>>
-          : SingleDSLInfer<Keywords, Trim<Text>>;
+          ? DSLInfer<Keywords, Trim<R>, Acc | SingleDSLInfer<Keywords, Trim<L>>>
+          : Acc | SingleDSLInfer<Keywords, Trim<Text>>;
 
 function validateDSLPart(
   part: string,
