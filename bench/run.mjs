@@ -182,28 +182,31 @@ const NEAR_WALL = {
   templateArms: { infer: 48, validate: 49 },
 };
 
-// Which sweep each `NEAR_WALL` entry pins. The pinned value is a *lower bound*
-// on the wall: if a parser gets deeper the wall moves up and the pin stays
-// valid; if the wall drops below the pin the extreme no longer compiles, and
-// `checkNearWall` says so instead of letting it look like a stray TS2589.
+// Which scenario each `NEAR_WALL` entry builds, and which sweep dimension
+// measures its wall. The two names differ (`extreme-interp` is the scenario,
+// `interp-scalar` the dimension) — the pinned value is a *lower bound* on the
+// wall: if a parser gets deeper the wall moves up and the pin stays valid; if
+// the wall drops below the pin the extreme no longer compiles, and
+// `checkNearWall` says so by scenario name instead of letting it look like a
+// stray TS2589.
 const NEAR_WALL_DIM = {
-  union: "union-width",
-  interp: "interp-scalar",
-  interpUnion: "interp-union",
-  templateArms: "template-arms",
+  union: { scenario: "extreme-union", dim: "union-width" },
+  interp: { scenario: "extreme-interp", dim: "interp-scalar" },
+  interpUnion: { scenario: "extreme-interp-union", dim: "interp-union" },
+  templateArms: { scenario: "extreme-template-arms", dim: "template-arms" },
 };
 
 /** Compare every pinned extreme against the wall the current run measured. */
 function checkNearWall(sweeps) {
   const problems = [];
-  for (const [shape, dim] of Object.entries(NEAR_WALL_DIM)) {
+  for (const [shape, { scenario, dim }] of Object.entries(NEAR_WALL_DIM)) {
     for (const kind of KINDS) {
       const pinned = NEAR_WALL[shape]?.[kind];
       const measured = sweeps?.[`${dim}.${kind}`]?.threshold;
       if (pinned == null || measured == null) continue;
       if (pinned > measured) {
         problems.push(
-          `${dim}/${kind}: NEAR_WALL ${pinned} is past the measured wall ${measured} — lower it (or the parser regressed)`,
+          `scenario ${scenario}.${kind} no longer compiles: NEAR_WALL.${shape} pins ${pinned}, but the ${dim}/${kind} wall is ${measured} — lower NEAR_WALL.${shape}.${kind} (or the parser regressed)`,
         );
       }
     }
