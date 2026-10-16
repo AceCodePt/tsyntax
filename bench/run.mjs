@@ -176,10 +176,10 @@ const NULL_SOURCE =
 // `Break points` table below. Raise a number when that parser gets deeper, so
 // "extreme" keeps measuring at the limit rather than comfortably under it.
 const NEAR_WALL = {
-  union: { infer: 92, validate: 49 },
+  union: { infer: 1999, validate: 49 },
   interp: { infer: 48, validate: 47 },
   interpUnion: { infer: 16, validate: 47 },
-  templateArms: { infer: 48, validate: 49 },
+  templateArms: { infer: 999, validate: 49 },
 };
 
 // Which scenario each `NEAR_WALL` entry builds, and which sweep dimension
@@ -246,10 +246,10 @@ const SCENARIOS = SHAPES.flatMap((shape) =>
 );
 
 const SWEEP_DIMS = [
-  { name: "union-width", min: 2, max: 512, gen: joinedArms, unit: "arms" },
+  { name: "union-width", min: 2, max: 2048, gen: joinedArms, unit: "arms" },
   { name: "interp-scalar", min: 1, max: 256, gen: interpScalar, unit: "interpolations" },
   { name: "interp-union", min: 1, max: 128, gen: interpUnion, unit: "interpolations" },
-  { name: "template-arms", min: 1, max: 128, gen: templateArms, unit: "arms" },
+  { name: "template-arms", min: 1, max: 1024, gen: templateArms, unit: "arms" },
 ];
 
 // The committed `bench/scenarios/*.ts` are generated, but generated *once* —
