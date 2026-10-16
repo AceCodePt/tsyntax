@@ -112,6 +112,21 @@ All three are documented trade-offs for type-system performance, not oversights.
 | Compile time  | A malformed DSL string fails `tsc` at the call site, with the offending token named. |
 | Runtime       | `dslString()` throws on a malformed string even without `tsc` in the loop; `parseValueAgainstDSL()` rejects values that don't match. |
 
+## Benchmarks
+
+The type-level parser is measured, not guessed at. `bench/run.mjs` compiles each
+scenario as its own program and reports TypeScript's **instantiation counts**
+(`--singleThreaded`, so the counters are deterministic) - the unit that decides
+whether a DSL string hits `TS2589` (too deep) or `TS2590` (union too complex):
+
+- `pnpm bench` - scenario table plus break-point sweeps, diffed against the baseline
+- `pnpm bench:baseline` - the same, and writes `bench/baseline.json`
+- `pnpm bench:light` - scenario table only (fast, no sweeps)
+
+Each implementation under test gets its own program directory
+(`bench/.tmp/<impl>/`) with a per-scenario tsconfig, so an implementation never
+shares a program or an incremental cache with the baseline.
+
 ## Prior art and lineage
 
 The one-string, two-walls technique - a TypeScript-syntax definition string
