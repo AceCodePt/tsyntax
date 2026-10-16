@@ -50,8 +50,8 @@ maintainer to own and fast enough to stay out of your editor's way.
 
 Measured, not aspirational:
 
-- **491 lines** of source (`src/index.ts` + `src/types.ts`, **15.1 KB**, **4.1 KB
-  gzipped**) — of which ~150 lines are the type-level parser and the rest the
+- **499 lines** of source (`src/index.ts` + `src/types.ts`, **15.6 KB**, **4.3 KB
+  gzipped**) — of which ~160 lines are the type-level parser and the rest the
   runtime parser.
 - **10 exported symbols** — `SUPPORTED_KEYWORDS`, `dslString`,
   `parseValueAgainstDSL`, `extractTokenReferences`, `detectCircularReferences`,
@@ -59,7 +59,7 @@ Measured, not aspirational:
   `SupportedKeywordsConfig` types.
 - **~1.5 KB gzipped runtime** — once the type-level parser is erased, the
   runtime bundles to ~3.2 KB minified (~1.5 KB gzipped).
-- Published tarball: **7.3 kB** packed / **22.7 kB** unpacked — just the two
+- Published tarball: **7.5 kB** packed / **23.2 kB** unpacked — just the two
   source files plus the manifest and README.
 
 This is a small parser over a deliberately small grammar — a scalar subset of

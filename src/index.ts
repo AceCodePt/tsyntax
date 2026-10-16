@@ -150,6 +150,12 @@ type SingleDSLInfer<
 // splitter, no mapped pass. A leading backtick is peeled first, so a `|` inside
 // `${...}` stays within one arm. `Acc` starts as `never`, so `Acc | …` is the
 // identity until the first arm is added.
+//
+// The final branch guards on `[Acc] extends [never]`: a token with no top-level
+// `|` reaches the leaf with `Acc = never`, and returning `SingleDSLInfer`
+// directly there (rather than `never | …`) keeps one instantiation frame off the
+// path. That frame is what `InferRestOfBackTick` consumes per interpolation, so
+// without the guard the deepest scalar-template tokens lose one step of depth.
 export type DSLInfer<
   Keywords extends SupportedKeywordsConfig,
   Text extends string,
@@ -175,7 +181,9 @@ export type DSLInfer<
           >
         : Text extends `${infer L}|${infer R}`
           ? DSLInfer<Keywords, Trim<R>, Acc | SingleDSLInfer<Keywords, Trim<L>>>
-          : Acc | SingleDSLInfer<Keywords, Trim<Text>>;
+          : [Acc] extends [never]
+            ? SingleDSLInfer<Keywords, Trim<Text>>
+            : Acc | SingleDSLInfer<Keywords, Trim<Text>>;
 
 function validateDSLPart(
   part: string,
