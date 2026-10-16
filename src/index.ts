@@ -82,31 +82,55 @@ type SingleDSLValidate<
               >
             : `'${Trim<L>}' is not supported`;
 
-type DSLTemplateDelimiter<S extends SupportedKeywordsConfig, T extends string> =
-  Trim<T> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
-    ? Maybe extends `${infer Before extends string}|${infer Other extends string}`
-      ? SingleDSLValidate<
-          S,
-          `\`${Piped}\``,
-          Other,
-          HasTrailingSpace<Before>,
-          HasLeadingSpace<Other>
-        >
-      : SingleDSLValidate<S, `\`${Piped}\``, never>
-    : T extends `${infer L extends string}|${infer R extends string}`
-      ? SingleDSLValidate<S, L, R>
-      : SingleDSLValidate<S, T, never>;
+type DSLTemplateDelimiter<
+  S extends SupportedKeywordsConfig,
+  T extends string,
+  Acc extends string = "",
+> = Trim<T> extends `\`${infer Piped extends `${string}|${string}`}\`${infer Maybe extends string}`
+  ? Maybe extends `${infer Before extends string}|${infer Other extends string}`
+    ? DSLValidate<
+        S,
+        Other,
+        `${Acc}${SingleDSLValidate<S, `\`${Piped}\``, never>}${HasTrailingSpace<Before> extends true ? " " : ""}|${HasLeadingSpace<Other> extends true ? " " : ""}`
+      >
+    : `${Acc}${SingleDSLValidate<S, `\`${Piped}\``, never>}`
+  : T extends `${infer L extends string}|${infer R extends string}`
+    ? DSLValidate<
+        S,
+        R,
+        `${Acc}${SingleDSLValidate<S, L, never>}${HasTrailingSpace<L> extends true ? " " : ""}|${HasLeadingSpace<R> extends true ? " " : ""}`
+      >
+    : `${Acc}${SingleDSLValidate<S, T, never>}`;
 
+// Walk the top-level `|` arms in tail position, accumulating the rebuilt string
+// in `Acc`, so a long union no longer nests one frame per arm the way
+// `PipeWhenExists`'s `…|${DSLValidate<S, R>}` did. Each arm is validated on its
+// own (`SingleDSLValidate<…, never>`), and the `|` with the spaces either side
+// of it is appended to `Acc` before the tail call. `Acc` defaults to `""`, so
+// the two-argument `DSLValidate<K, T>` signature is unchanged.
+//
+// Unlike `DSLInfer`, the terminal is deliberately not guarded on
+// `[Acc] extends [""]`. The guard would recover one step of scalar-template
+// depth (the same step `DSLInfer` buys for +21 instantiations) but costs ~1,479
+// instantiations of fixed cost here, because `DSLValidate` is referenced from
+// the exported `dslString` signature and its body is therefore checked eagerly.
+// One depth step is not worth that; the scalar-template validate walls sit one
+// step below their infer counterparts as a result.
 export type DSLValidate<
   Keywords extends SupportedKeywordsConfig,
   T extends string,
+  Acc extends string = "",
 > = [T] extends [never]
   ? string
   : Trim<T> extends `\`${string}\`${string}`
-    ? DSLTemplateDelimiter<Keywords, T>
+    ? DSLTemplateDelimiter<Keywords, T, Acc>
     : T extends `${infer L extends string}|${infer R extends string}`
-      ? SingleDSLValidate<Keywords, L, R>
-      : SingleDSLValidate<Keywords, T, never>;
+      ? DSLValidate<
+          Keywords,
+          R,
+          `${Acc}${SingleDSLValidate<Keywords, L, never>}${HasTrailingSpace<L> extends true ? " " : ""}|${HasLeadingSpace<R> extends true ? " " : ""}`
+        >
+      : `${Acc}${SingleDSLValidate<Keywords, T, never>}`;
 
 /**
  * Validates exactly one DSL arm - a single string with no top-level `|`
