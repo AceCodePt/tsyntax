@@ -1,7 +1,7 @@
 # @ace-code/tsyntax
 
 Scoped alias for [**tsyntax**](https://www.npmjs.com/package/tsyntax) — a
-lightweight ~17 KB parser for scalar TypeScript-syntax DSL strings, validated
+lightweight ~21 KB parser for scalar TypeScript-syntax DSL strings, validated
 at the type level and at runtime.
 
 This package re-exports `tsyntax` unchanged, and ships the same way: compiled

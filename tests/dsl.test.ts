@@ -1118,3 +1118,131 @@ describe("DSLValidateArm - one arm at a time", () => {
     >();
   });
 });
+
+describe("Runtime and type-level parsers agree", () => {
+  describe("`${string}` matches every string, including line terminators", () => {
+    test("Type Inference", () => {
+      assertType<
+        Equal<DSLInfer<SupportedKeywords, "`${string}`">, `${string}`>
+      >();
+    });
+    test("Parse accepts multi-line values", () => {
+      for (const value of ["a\nb", "a\r\nb", "a\u2028b", "line\n"]) {
+        assert.strictEqual(
+          parseValueAgainstDSL(SUPPORTED_KEYWORDS, "`${string}`", value),
+          value,
+        );
+      }
+    });
+  });
+
+  describe("`${bigint}` uses TypeScript's bigint literal grammar", () => {
+    test("Type Inference", () => {
+      assertType<
+        Equal<DSLInfer<SupportedKeywords, "`${bigint}`">, `${bigint}`>
+      >();
+    });
+    test("accepts the signed and radix forms TS accepts", () => {
+      for (const value of [
+        "0",
+        "-0",
+        "1",
+        "-1",
+        "0x1f",
+        "-0x1f",
+        "0b101",
+        "0o17",
+      ]) {
+        assert.strictEqual(
+          parseValueAgainstDSL(
+            SUPPORTED_KEYWORDS,
+            "`${bigint}`",
+            value as never,
+          ),
+          value,
+        );
+      }
+    });
+    test("rejects the forms TS rejects", () => {
+      for (const value of ["+1", "01", "1.5", "1e3", "1n", ""]) {
+        assert.throws(() =>
+          parseValueAgainstDSL(
+            SUPPORTED_KEYWORDS,
+            "`${bigint}`",
+            value as never,
+          ),
+        );
+      }
+    });
+  });
+
+  describe("`${number}` keeps its sign inside the decimal form", () => {
+    test("rejects signed radix literals", () => {
+      assert.throws(() =>
+        parseValueAgainstDSL(
+          SUPPORTED_KEYWORDS,
+          "`${number}`",
+          "-0x1f" as never,
+        ),
+      );
+      assert.throws(() =>
+        parseValueAgainstDSL(
+          SUPPORTED_KEYWORDS,
+          "`${number}`",
+          "+0x1f" as never,
+        ),
+      );
+    });
+    test("still accepts the decimal and unsigned-radix forms", () => {
+      for (const value of [
+        "+1",
+        "-1",
+        ".5",
+        "1.",
+        "1e3",
+        "01",
+        "0x1f",
+        "0b101",
+        "0o17",
+      ]) {
+        assert.strictEqual(
+          parseValueAgainstDSL(
+            SUPPORTED_KEYWORDS,
+            "`${number}`",
+            value as never,
+          ),
+          value,
+        );
+      }
+    });
+  });
+});
+
+describe("A cyclic keyword config without detectCircularReferences", () => {
+  test("a self-reference throws a circular-reference error, not a mismatch", () => {
+    const config = Object.assign({}, SUPPORTED_KEYWORDS, { "<a>": "<a>" });
+    assert.throws(
+      () => parseValueAgainstDSL(config, "<a>", "x" as never),
+      /Circular reference detected: <a> -> <a>/,
+    );
+  });
+
+  test("an indirect cycle names the whole path", () => {
+    const config = Object.assign({}, SUPPORTED_KEYWORDS, {
+      "<a>": "<b>",
+      "<b>": "<a>",
+    });
+    assert.throws(
+      () => parseValueAgainstDSL(config, "<a>", "x" as never),
+      /Circular reference detected: <a> -> <b> -> <a>/,
+    );
+  });
+
+  test("a cycle through a template interpolation is caught too", () => {
+    const config = Object.assign({}, SUPPORTED_KEYWORDS, { "<a>": "`${<a>}`" });
+    assert.throws(
+      () => parseValueAgainstDSL(config, "<a>", "x" as never),
+      /Circular reference detected/,
+    );
+  });
+});

@@ -1,7 +1,8 @@
 # tsyntax
 
 **tsyntax** - TypeScript-syntax **DSL strings**, parsed identically at the
-**type level** and at **runtime**. One string, two walls.
+**type level** and at **runtime**. One string, two walls: it gives you both
+runtime and compile time checks for the price of knowing TypeScript.
 
 Write a type as a string and get three things from a single source of truth:
 
@@ -78,16 +79,16 @@ maintainer to own and fast enough to stay out of your editor's way.
 
 Measured, not aspirational:
 
-- **523 lines** of source (`src/index.ts` + `src/types.ts`, **17.0 KB**, **4.8 KB
-  gzipped**) — of which ~185 lines are the type-level parser and the rest the
+- **613 lines** of source (`src/index.ts` + `src/types.ts`, **20.8 KB**, **6.0 KB
+  gzipped**) — of which ~188 lines are the type-level parser and the rest the
   runtime parser.
 - **10 exported symbols** — `SUPPORTED_KEYWORDS`, `dslString`,
   `parseValueAgainstDSL`, `extractTokenReferences`, `detectCircularReferences`,
   and the `DSLValidate` / `DSLValidateArm` / `DSLInfer` / `SupportedKeywords` /
   `SupportedKeywordsConfig` types.
-- **~1.5 KB gzipped runtime** — once the type-level parser is erased, the
-  runtime bundles to ~3.2 KB minified (~1.5 KB gzipped).
-- Published tarball: **8.4 kB** packed / **26.6 kB** unpacked — `dist/` (the
+- **~1.6 KB gzipped runtime** — once the type-level parser is erased, the
+  runtime bundles to ~3.9 KB minified (~1.6 KB gzipped).
+- Published tarball: **9.0 kB** packed / **28.4 kB** unpacked — `dist/` (the
   compiled ESM runtime plus its `.d.ts`) and this README. The `src/` sources are
   not shipped, and there is nothing for you to build.
 

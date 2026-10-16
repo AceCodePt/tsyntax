@@ -4,7 +4,7 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"description": "A lightweight ~17 KB parser for scalar TypeScript-syntax DSL strings, validated at the type level and at runtime - one string, two walls",
+	"description": "A lightweight ~21 KB parser for scalar TypeScript-syntax DSL strings, validated at the type level and at runtime - one string, two walls",
 	"type": "module",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",

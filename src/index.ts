@@ -376,13 +376,22 @@ function escapeRegExp(text: string): string {
 }
 
 // A TypeScript numeric literal - what `${number}` / `infer N extends number`
-// accepts: optional sign, decimal (with an optional leading or trailing dot),
-// hex/binary/octal, and an optional exponent. Deliberately not `Number(x)`,
-// which also takes "Infinity" - `${number}` rejects that, so using `Number`
-// here would make the two parsers disagree in the other direction.
+// accepts: an optional sign on the decimal forms (with an optional leading or
+// trailing dot) and an optional exponent, or an *unsigned* hex/binary/octal
+// literal. The sign deliberately sits inside the decimal alternative: TS
+// accepts `-1` and `0x1f` but rejects `-0x1f`, and modelling it as one leading
+// `[+-]?` would make the runtime accept a string `tsc` refuses. Deliberately
+// not `Number(x)`, which also takes "Infinity" - `${number}` rejects that.
 const TS_NUMBER_PATTERN =
-  "[+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?)";
+  "(?:[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?|0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+)";
 const TS_NUMBER_RE = new RegExp(`^${TS_NUMBER_PATTERN}$`);
+
+// A TypeScript bigint literal - what `${bigint}` accepts. Unlike `${number}`,
+// there is no decimal point, exponent or bigint suffix, the sign is only `-`,
+// and the decimal form has no leading zero (`0` is fine, `01` is not); the
+// hex/binary/octal forms may carry a `-` and leading zeros.
+const TS_BIGINT_PATTERN =
+  "-?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|0|[1-9]\\d*)";
 
 function dslTokenToRegExp(
   token: string,
@@ -390,9 +399,12 @@ function dslTokenToRegExp(
   seen: Set<string>,
 ): string | null {
   const trimmed = token.trim();
-  if (trimmed === "string") return ".*";
+  // `[\s\S]*`, not `.*`: `.` excludes line terminators, but `${string}` at the
+  // type level matches every string, so `.*` would reject a multi-line value
+  // that `tsc` accepts.
+  if (trimmed === "string") return "[\\s\\S]*";
   if (trimmed === "number") return TS_NUMBER_PATTERN;
-  if (trimmed === "bigint") return "\\d+";
+  if (trimmed === "bigint") return TS_BIGINT_PATTERN;
   if (trimmed === "boolean") return "(?:true|false)";
   if (trimmed === "true") return "true";
   if (trimmed === "false") return "false";
@@ -407,13 +419,18 @@ function dslTokenToRegExp(
     return escapeRegExp(trimmed.slice(1, -1));
   }
   // Recursive token reference such as <length>: compile the DSL it points at.
-  // `seen` guards a cyclic config from looping forever.
+  // `seen` guards a cyclic config from looping forever; a cycle is a genuine
+  // config error, so surface it rather than letting it collapse to "no match".
   if (
     trimmed in keywords &&
     typeof keywords[trimmed] === "string" &&
     keywords[trimmed] !== ""
   ) {
-    if (seen.has(trimmed)) return null;
+    if (seen.has(trimmed)) {
+      throw new Error(
+        `Circular reference detected: ${[...seen, trimmed].join(" -> ")}`,
+      );
+    }
     seen.add(trimmed);
     const fragment = dslToRegExpFragment(keywords[trimmed], keywords, seen);
     seen.delete(trimmed);
@@ -481,23 +498,31 @@ function matchValueAgainstPart(
   part: string,
   supportedKeywords: SupportedKeywordsConfig,
   checkAgainst: unknown,
+  seen: ReadonlySet<string>,
 ): boolean {
-  // Token reference / nested DSL: a keyword whose value is a non-empty DSL string
+  // Token reference / nested DSL: a keyword whose value is a non-empty DSL string.
+  // `seen` carries the tokens currently being expanded, so a cyclic config that
+  // skipped detectCircularReferences fails with a clear circular-reference error
+  // instead of recursing to a RangeError that a broad catch would misreport as
+  // "does not match".
   if (
     part in supportedKeywords &&
     typeof supportedKeywords[part] === "string" &&
     supportedKeywords[part] !== ""
   ) {
-    try {
-      parseValueAgainstDSL(
-        supportedKeywords,
-        supportedKeywords[part],
-        checkAgainst as never,
+    if (seen.has(part)) {
+      throw new Error(
+        `Circular reference detected: ${[...seen, part].join(" -> ")}`,
       );
-      return true;
-    } catch {
-      return false;
     }
+    const nextSeen = new Set(seen);
+    nextSeen.add(part);
+    return dslMatchesValue(
+      supportedKeywords,
+      supportedKeywords[part],
+      checkAgainst,
+      nextSeen,
+    );
   }
 
   // Literal keyword such as true/false. Match by value, and crucially *before*
@@ -542,6 +567,28 @@ function matchValueAgainstPart(
   return false;
 }
 
+// Validate a DSL string and report whether `checkAgainst` matches any arm.
+// `seen` is threaded from the caller so a cyclic token graph is caught as a
+// path, not merely by depth. Validation runs first, mirroring dslString().
+function dslMatchesValue(
+  supportedKeywords: SupportedKeywordsConfig,
+  dslString: string,
+  checkAgainst: unknown,
+  seen: ReadonlySet<string>,
+): boolean {
+  const parts = splitOutsideQuotes(dslString).map((p) => p.trim());
+  if (parts.length === 0 || (parts.length === 1 && parts[0] === "")) {
+    throw new Error(`Invalid DSL string: "${dslString}"`);
+  }
+  for (const part of parts) {
+    validateDSLPart(part, supportedKeywords, dslString);
+  }
+
+  return parts.some((part) =>
+    matchValueAgainstPart(part, supportedKeywords, checkAgainst, seen),
+  );
+}
+
 export function parseValueAgainstDSL<
   const Keywords extends SupportedKeywordsConfig,
   const DSL extends string,
@@ -551,19 +598,7 @@ export function parseValueAgainstDSL<
   checkAgainst: DSLInfer<Keywords, DSL>, // 'true'
 ): DSLInfer<Keywords, DSL> {
   // Validate the DSL string itself first (mirrors dslString() runtime check)
-  const parts = splitOutsideQuotes(dslString).map((p) => p.trim());
-  if (parts.length === 0 || (parts.length === 1 && parts[0] === "")) {
-    throw new Error(`Invalid DSL string: "${dslString}"`);
-  }
-  for (const part of parts) {
-    validateDSLPart(part, supportedKeywords, dslString);
-  }
-
-  const matches = parts.some((part) =>
-    matchValueAgainstPart(part, supportedKeywords, checkAgainst),
-  );
-
-  if (!matches) {
+  if (!dslMatchesValue(supportedKeywords, dslString, checkAgainst, new Set())) {
     throw new Error(
       `Value of type "${typeof checkAgainst}" does not match DSL "${dslString}"`,
     );
