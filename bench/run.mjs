@@ -175,11 +175,14 @@ const NULL_SOURCE =
 // Near-wall input sizes, one per parser, tracking the walls reported by the
 // `Break points` table below. Raise a number when that parser gets deeper, so
 // "extreme" keeps measuring at the limit rather than comfortably under it.
+// The infer union/template extremes are capped below their (now much higher)
+// walls to keep the committed fixtures small; the sweeps are the source of
+// truth for the walls themselves.
 const NEAR_WALL = {
-  union: { infer: 1999, validate: 49 },
-  interp: { infer: 48, validate: 47 },
-  interpUnion: { infer: 16, validate: 47 },
-  templateArms: { infer: 999, validate: 49 },
+  union: { infer: 1024, validate: 512 },
+  interp: { infer: 48, validate: 46 },
+  interpUnion: { infer: 16, validate: 46 },
+  templateArms: { infer: 512, validate: 256 },
 };
 
 // Which scenario each `NEAR_WALL` entry builds, and which sweep dimension
