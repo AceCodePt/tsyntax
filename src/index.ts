@@ -72,15 +72,15 @@ type SingleDSLValidate<
         ? PipeWhenExists<Keywords, L, R, SpaceBefore, SpaceAfter>
         : Trim<L> extends keyof Keywords
           ? PipeWhenExists<Keywords, Trim<L>, R, SpaceBefore, SpaceAfter>
-          : [Extract<keyof Keywords, `${Trim<L>}${string}`>] extends [string]
-            ? PipeWhenExists<
+          : [Extract<keyof Keywords, `${Trim<L>}${string}`>] extends [never]
+            ? `'${Trim<L>}' is not supported`
+            : PipeWhenExists<
                 Keywords,
                 Extract<keyof Keywords, `${Trim<L>}${string}`>,
                 R,
                 SpaceBefore,
                 SpaceAfter
-              >
-            : `'${Trim<L>}' is not supported`;
+              >;
 
 type DSLTemplateDelimiter<
   S extends SupportedKeywordsConfig,

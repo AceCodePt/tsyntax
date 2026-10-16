@@ -1041,6 +1041,12 @@ describe("Error handling", () => {
         /does not match DSL/,
       );
     });
+
+    test("the compile error names the offending token", () => {
+      assertType<
+        Equal<DSLValidate<SupportedKeywords, "xyz">, "'xyz' is not supported">
+      >();
+    });
   });
 });
 
