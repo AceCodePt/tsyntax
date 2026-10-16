@@ -123,6 +123,12 @@ describe("Literals", () => {
           true,
         );
       });
+      test("Runtime rejects the opposite boolean", () => {
+        assert.throws(() =>
+          // @ts-expect-error — false is not DSLInfer<..., "true">
+          parseValueAgainstDSL(SUPPORTED_KEYWORDS, "true", false),
+        );
+      });
     });
 
     describe("false", () => {
@@ -136,6 +142,12 @@ describe("Literals", () => {
         assert.strictEqual(
           parseValueAgainstDSL(SUPPORTED_KEYWORDS, "false", false),
           false,
+        );
+      });
+      test("Runtime rejects the opposite boolean", () => {
+        assert.throws(() =>
+          // @ts-expect-error — true is not DSLInfer<..., "false">
+          parseValueAgainstDSL(SUPPORTED_KEYWORDS, "false", true),
         );
       });
     });
@@ -722,6 +734,63 @@ describe("Recursive DSL - '<length>' as `${number}${'%' | 'px'}` ", () => {
         "1%",
       ),
       "1%",
+    );
+  });
+});
+
+describe("Recursive token inside `${...}`", () => {
+  const keywords = Object.assign({}, SUPPORTED_KEYWORDS, {
+    "<unit>": "'%' | 'px'",
+  });
+
+  test("Type Inference", () => {
+    assertType<
+      Equal<
+        DSLInfer<
+          SupportedKeywords & { "<unit>": "'%' | 'px'" },
+          "`${number}${<unit>}`"
+        >,
+        `${number}%` | `${number}px`
+      >
+    >();
+  });
+  test("Runtime Validation", () => {
+    dslString(keywords, "`${number}${<unit>}`" as never);
+  });
+  test("Parse", () => {
+    assert.strictEqual(
+      parseValueAgainstDSL(keywords, "`${number}${<unit>}`" as never, "5px"),
+      "5px",
+    );
+    assert.strictEqual(
+      parseValueAgainstDSL(keywords, "`${number}${<unit>}`" as never, "5%"),
+      "5%",
+    );
+  });
+  test("rejects a value outside the referenced token", () => {
+    assert.throws(() =>
+      parseValueAgainstDSL(keywords, "`${number}${<unit>}`" as never, "5em"),
+    );
+  });
+});
+
+describe("`${number}` covers TypeScript's numeric grammar", () => {
+  test("accepts signed, dotted and exponent forms", () => {
+    for (const value of ["5px", "-5px", "+5px", ".5px", "5.px", "1e3px"]) {
+      assert.strictEqual(
+        parseValueAgainstDSL(
+          SUPPORTED_KEYWORDS,
+          "`${number}px`",
+          value as never,
+        ),
+        value,
+      );
+    }
+  });
+  test("'Infinity' is not a numeric literal", () => {
+    assert.throws(() =>
+      // @ts-expect-error — TS rejects "Infinity" as `${number}`
+      dslString(SUPPORTED_KEYWORDS, "Infinity"),
     );
   });
 });

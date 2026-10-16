@@ -215,7 +215,7 @@ function validateDSLPart(
   fullDSL: string,
 ): void {
   const isKeyword = part in supportedKeywords;
-  const isNumericLiteral = part !== "" && !Number.isNaN(+part);
+  const isNumericLiteral = TS_NUMBER_RE.test(part);
   const isQuotedString = /^'[^']*'$|^"[^"]*"$|^`[^`]*`$/.test(part);
   const isTemplateLiteral = /^`.*`$/.test(part);
 
@@ -375,44 +375,87 @@ function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function dslTokenToRegExp(token: string): string | null {
+// A TypeScript numeric literal - what `${number}` / `infer N extends number`
+// accepts: optional sign, decimal (with an optional leading or trailing dot),
+// hex/binary/octal, and an optional exponent. Deliberately not `Number(x)`,
+// which also takes "Infinity" - `${number}` rejects that, so using `Number`
+// here would make the two parsers disagree in the other direction.
+const TS_NUMBER_PATTERN =
+  "[+-]?(?:0[xX][0-9a-fA-F]+|0[bB][01]+|0[oO][0-7]+|(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?)";
+const TS_NUMBER_RE = new RegExp(`^${TS_NUMBER_PATTERN}$`);
+
+function dslTokenToRegExp(
+  token: string,
+  keywords: SupportedKeywordsConfig,
+  seen: Set<string>,
+): string | null {
   const trimmed = token.trim();
   if (trimmed === "string") return ".*";
-  if (trimmed === "number") return "\\d+(?:\\.\\d+)?";
+  if (trimmed === "number") return TS_NUMBER_PATTERN;
   if (trimmed === "bigint") return "\\d+";
   if (trimmed === "boolean") return "(?:true|false)";
   if (trimmed === "true") return "true";
   if (trimmed === "false") return "false";
   if (trimmed === "undefined") return "undefined";
+  if (trimmed.startsWith("`") && trimmed.endsWith("`")) {
+    return templateFragment(trimmed.slice(1, -1), keywords, seen);
+  }
   if (
     (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
     (trimmed.startsWith('"') && trimmed.endsWith('"'))
   ) {
     return escapeRegExp(trimmed.slice(1, -1));
   }
-  if (trimmed !== "" && !Number.isNaN(+trimmed)) return escapeRegExp(trimmed);
+  // Recursive token reference such as <length>: compile the DSL it points at.
+  // `seen` guards a cyclic config from looping forever.
+  if (
+    trimmed in keywords &&
+    typeof keywords[trimmed] === "string" &&
+    keywords[trimmed] !== ""
+  ) {
+    if (seen.has(trimmed)) return null;
+    seen.add(trimmed);
+    const fragment = dslToRegExpFragment(keywords[trimmed], keywords, seen);
+    seen.delete(trimmed);
+    return fragment;
+  }
+  if (TS_NUMBER_RE.test(trimmed)) return escapeRegExp(trimmed);
   return null;
 }
 
-function interpolationToRegExp(content: string): string | null {
+// Unanchored fragment for a whole DSL string (a union or a single arm).
+function dslToRegExpFragment(
+  content: string,
+  keywords: SupportedKeywordsConfig,
+  seen: Set<string>,
+): string | null {
   const alternatives: string[] = [];
   for (const token of splitOutsideQuotes(content)) {
-    const regExp = dslTokenToRegExp(token);
-    if (regExp === null) return null;
-    alternatives.push(regExp);
+    const fragment = dslTokenToRegExp(token, keywords, seen);
+    if (fragment === null) return null;
+    alternatives.push(fragment);
   }
   return alternatives.length > 0 ? `(?:${alternatives.join("|")})` : null;
 }
 
-function templateLiteralToRegExp(template: string): RegExp | null {
-  let pattern = "^";
+// Unanchored fragment for the body of a template literal.
+function templateFragment(
+  template: string,
+  keywords: SupportedKeywordsConfig,
+  seen: Set<string>,
+): string | null {
+  let pattern = "";
   let index = 0;
 
   while (index < template.length) {
     if (template.charAt(index) === "$" && template.charAt(index + 1) === "{") {
       const end = template.indexOf("}", index + 2);
       if (end === -1) return null;
-      const replacement = interpolationToRegExp(template.slice(index + 2, end));
+      const replacement = dslToRegExpFragment(
+        template.slice(index + 2, end),
+        keywords,
+        seen,
+      );
       if (replacement === null) return null;
       pattern += replacement;
       index = end + 1;
@@ -422,7 +465,16 @@ function templateLiteralToRegExp(template: string): RegExp | null {
     }
   }
 
-  return new RegExp(`${pattern}$`);
+  return pattern;
+}
+
+function templateLiteralToRegExp(
+  template: string,
+  keywords: SupportedKeywordsConfig,
+  seen: Set<string>,
+): RegExp | null {
+  const fragment = templateFragment(template, keywords, seen);
+  return fragment === null ? null : new RegExp(`^${fragment}$`);
 }
 
 function matchValueAgainstPart(
@@ -448,6 +500,13 @@ function matchValueAgainstPart(
     }
   }
 
+  // Literal keyword such as true/false. Match by value, and crucially *before*
+  // the typeof check below: `false` must not satisfy "true" (or vice versa)
+  // just because both are booleans.
+  if (part in supportedKeywords && String(supportedKeywords[part]) === part) {
+    return checkAgainst === supportedKeywords[part];
+  }
+
   // Primitive keyword (string/number/bigint/boolean/undefined): match by typeof
   if (
     part in supportedKeywords &&
@@ -456,17 +515,9 @@ function matchValueAgainstPart(
     return true;
   }
 
-  // Literal keyword such as true/false
-  if (
-    part in supportedKeywords &&
-    `${checkAgainst}` === part &&
-    checkAgainst === supportedKeywords[part]
-  ) {
-    return true;
-  }
-
-  // Numeric literal
-  if (part !== "" && !Number.isNaN(+part) && +part === checkAgainst) {
+  // Numeric literal, using TypeScript's numeric grammar - `Infinity`/`NaN` are
+  // not literals, so they must not slip through the way `+part` would allow.
+  if (TS_NUMBER_RE.test(part) && Number(part) === checkAgainst) {
     return true;
   }
 
@@ -480,7 +531,11 @@ function matchValueAgainstPart(
 
   // Template literal: compile to a regex and match the stringified value
   if (part.startsWith("`") && part.endsWith("`")) {
-    const regExp = templateLiteralToRegExp(part.slice(1, -1));
+    const regExp = templateLiteralToRegExp(
+      part.slice(1, -1),
+      supportedKeywords,
+      new Set(),
+    );
     return regExp !== null && regExp.test(String(checkAgainst));
   }
 
